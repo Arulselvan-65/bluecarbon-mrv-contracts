@@ -1,66 +1,41 @@
-## Foundry
+## Blue Carbon MRV Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Smart contracts for the **Blockchain-Powered Blue Carbon MRV Registry**
 
-Foundry consists of:
+## Overview
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+This repository contains the Solidity smart contracts powering a decentralized Monitoring, Reporting, and Verification (MRV) system for blue carbon ecosystem restoration (mangroves, seagrass, etc.) in India.
 
-## Documentation
+## Key goals:
+- Immutable on-chain storage of verified restoration data proofs
+- Human-in-the-loop verification (validators + NCCR Admin approval)
+- Gated minting of tokenized carbon credits
+- Role-based control, especially NCCR Admin oversight
 
-https://book.getfoundry.sh/
+## Core contracts:
+- **SubmissionRegistry** — Stores immutable submission hashes + metadata
+- **VerificationRegistry** — Logs validator decisions (approve / correction / reject)
+- **CarbonCreditToken** — ERC-20 style carbon credits with admin-only minting
 
-## Usage
 
-### Build
-
-```shell
-$ forge build
+## Project Structure (recommended)
+```
+bluecarbon-mry-contracts/
+├── src/
+│   ├── core/
+│   │   ├── CarbonCreditToken.sol
+│   │   ├── SubmissionRegistry.sol
+│   │   └── VerificationRegistry.sol
+│   └── interfaces/
+│       ├── ICarbonCreditToken.sol
+│       ├── ISubmissionRegistry.sol
+│       └── IVerificationRegistry.sol
+├── test/
 ```
 
-### Test
+## License
+MIT
 
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## Acknowledgments
+Designed to support transparent, verifiable blue carbon restoration in India's climate strategy.  
+Inspired by the need for decentralized MRV systems that onboard NGOs, communities, and coastal panchayats.
