@@ -2,6 +2,4 @@
 
 pragma solidity ^0.8.28;
 
-interface ISubmissionRegistry {
-
-}
+interface ISubmissionRegistry {}
