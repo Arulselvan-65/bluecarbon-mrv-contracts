@@ -21,13 +21,14 @@ contract SubmissionRegistry is ISubmissionRegistry {
         string lat;
         string long;
         bytes proofURI;
+        address fieldOfficer;
+        address verifier;
         ProjectStatus status;
     }
 
     struct Submission {
         uint256 submissionId;
         uint256 projectId;
-        address fieldOfficer;
         uint256 timeStamp;
         bytes proofURI;
         SubmissionStatus status;
@@ -35,7 +36,6 @@ contract SubmissionRegistry is ISubmissionRegistry {
 
     mapping(uint256 => Project) public projects;
     mapping(uint256 => Submission) public projectToSubmission;
-    mapping(uint256 => address) public projectToFieldOfficer;
 
     error NotAllowed();
     error ZeroAddress();
@@ -46,8 +46,17 @@ contract SubmissionRegistry is ISubmissionRegistry {
         _;
     }
 
+    modifier onlyFieldOfficer(uint256 projectId) {
+        _onlyFieldOfficer(projectId);
+        _;
+    }
+
     function _onlyAdmin() internal view {
         require(msg.sender == admin, NotAllowed());
+    }
+
+    function _onlyFieldOfficer(uint256 projectId) internal view {
+        require(projects[projectId].fieldOfficer == msg.sender, NotAllowed());
     }
 
     function create(
@@ -70,6 +79,8 @@ contract SubmissionRegistry is ISubmissionRegistry {
             lat: _lat,
             long: _long,
             proofURI: _uri,
+            fieldOfficer: address(0),
+            verifier: address(0),
             status: ProjectStatus.CREATED
         });
         projects[projectId] = project;
@@ -78,22 +89,30 @@ contract SubmissionRegistry is ISubmissionRegistry {
 
     function setFieldOfficer(uint256 projectId, address _fieldOfficer) external onlyAdmin {
         require(_fieldOfficer != address(0), ZeroAddress());
-        projectToFieldOfficer[projectId] = _fieldOfficer;
+        require(projects[projectId].status == ProjectStatus.CREATED);
+        projects[projectId].fieldOfficer = _fieldOfficer;
     }
 
-    function submitProofs(uint256 _projectId, bytes calldata _proofUri, SubmissionStatus _status) external {
-        require(projects[_projectId].status == ProjectStatus.CREATED);
-        require(projectToFieldOfficer[_projectId] == msg.sender, NotAllowed());
-        require(_proofUri.length > 0, InvalidURI());
-        uint256 submissionId = nextSubmissionId++;
-        Submission memory submission = Submission({
-            submissionId: submissionId,
-            projectId: _projectId,
-            fieldOfficer: msg.sender,
-            timeStamp: block.timestamp,
-            proofURI: _proofUri,
-            status: _status
-        });
-        projectToSubmission[_projectId] = submission;
+    function submitProofs(uint256 _projectId, bytes calldata _proofUri, SubmissionStatus _status)
+        external
+        onlyFieldOfficer(_projectId)
+    {
+        Project storage project = projects[_projectId];
+        require(project.status == ProjectStatus.CREATED);
+        if (_status == SubmissionStatus.REJECTED) {
+            project.status = ProjectStatus.REJECTED;
+        } else {
+            require(_proofUri.length > 0, InvalidURI());
+            uint256 submissionId = nextSubmissionId++;
+            Submission memory submission = Submission({
+                submissionId: submissionId,
+                projectId: _projectId,
+                timeStamp: block.timestamp,
+                proofURI: _proofUri,
+                status: _status
+            });
+            projectToSubmission[_projectId] = submission;
+            project.status = ProjectStatus.PROOFS_SUBMITTED;
+        }
     }
 }
